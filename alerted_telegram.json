@@ -1,4 +1,18 @@
 {
- "alerted": {},
- "aggiornato": 1791836744
+ "alerted": {
+  "3baaca24b6": {
+   "link": "https://knowyourmeme.com/memes/events/kelly-clarkson-singing-bird-art-of-play-drama",
+   "titolo": "Kelly Clarkson Calls Out Store For 'Pretty Woman-ing' Her, Inspiring Widespread Discourse, Memes",
+   "punteggio": 57,
+   "ts": 1791837558
+  },
+  "9592614c22": {
+   "link": "https://knowyourmeme.com/memes/kelly-clarkson-singing-bird-art-of-play-drama",
+   "titolo": "Kelly Clarkson Singing Bird / Art of Play Drama",
+   "punteggio": 53,
+   "ts": 1791837558
+  }
+ },
+ "aggiornato": 1791837558,
+ "soglia": 50
 }
