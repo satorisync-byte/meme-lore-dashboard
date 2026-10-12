@@ -20,7 +20,7 @@ Badge Solana: **Libero** · **Simili esistenti** · **Già lanciato**. Per i mem
 Preferiti (salvati nel browser), andamento nel tempo (`history.json`), immagini, filtri e ordinamento, layout per iPhone (schede sotto 768px).
 
 ## Aggiornamento e avvisi
-GitHub Actions ogni 5 minuti (`.github/workflows/update.yml`). Avvisi Telegram con prefisso **🐸 Meme Lore** per le voci con punteggio ≥ 65, ognuna inviata una sola volta (`alerted_telegram.json`). Segreti: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
+GitHub Actions ogni 5 minuti (`.github/workflows/update.yml`). Avvisi Telegram con prefisso **🐸 Meme Lore** per le voci con punteggio ≥ 50, ognuna inviata una sola volta (`alerted_telegram.json`). Segreti: `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`.
 
 Uso locale: `pip install -r requirements.txt && python aggregate.py && python notify.py`
 

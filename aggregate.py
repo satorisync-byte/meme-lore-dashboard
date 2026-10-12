@@ -77,20 +77,48 @@ TICK_RE = re.compile(r"(?<![A-Za-z0-9])\$([A-Za-z][A-Za-z0-9]{1,9})\b")
 NOT_TICK = set("""USD BTC ETH SOL USDT USDC XRP XRPL XRPUSD BNB ADA LINK SPY QQQ TSLA NVDA SEC CEO NOT CRYPTO ANTI FUD FUCK WITH AND ALL BUY SELL THIS THE
 FDIC DTCC DRS ITM OTM ATH ICO IPO ETF CPI FED GDP USA LOL KEK NGMI WAGMI HODL YOU ARE FOR WHY HOW WHAT JUST NEW NOW CENT MONDAY TUESDAY FRIDAY
 MINING NEET OKAY IRS AMA DCA API NFT DEX CEX TLDR EDIT LMAO WTF OMG SHIT""".split())
+NOT_TICK |= set("""SMG VOO VTI VXUS SCHD IWM DIA ARKK TQQQ SQQQ SOXL GME AMC BBBY BBBYQ MSTR COIN HOOD AAPL MSFT AMZN GOOG GOOGL META NFLX AMD INTC PLTR
+GLD SLV UVXY VIX SPX NDX DJI XMR ZEC LTC DOT ATOM ICP QNT XLM TRX AVAX MATIC POL ARB OP TON HBAR ALGO FIL NEAR APT SUI SEI INJ TIA RNDR FET
+IMO IMHO CEO CFO CTO USA UK EU ETF ATH ATL NFT IMO TBH IDK AFAIK FOMO YOLO MOASS DYOR NFA GM GN OTC SPAC KYC AML ROI APY APR TVL MEV RPC
+USB CPU GPU RAM SSD PDF URL HTML LLM AGI OAI GPT AI TV PC GDP PPI PCE NFP FOMC ECB BOJ IRA HSA LLC INC CEO COO DEI DOGE PEPE SHIB
+ABOUT WHEN WHERE WHO WILL THEY THEM THEN THAN THAT HAVE BEEN WERE YOUR FROM INTO OVER UNDER AFTER BEFORE EVERY SOME MUCH MORE MOST VERY
+REAL TRUE FALSE GOOD BAD BEST NEXT LAST BACK DOWN SAME ONLY ALSO EVEN STILL HERE THERE GOING MAKE TAKE GIVE LIFE TIME YEAR YEARS DAY DAYS
+MONEY CASH GOLD SILVER STOCK STOCKS BOND BONDS BANK BANKS RICH POOR HELP NEED WANT LIKE LOVE HATE FREE SAFE RISK LONG SHORT PUMP DUMP
+MOON BULL BEAR RUN CHART PRICE TAX TAXES DEBT JOB JOBS WORK HOME HOUSE CAR OK OKAY YES NO NOPE ANON ANONS OP ITT TLDR DM PM AM EST PST UTC
+MEME COIN TOKEN BUY SELL HOLD HODL SOON WAGMI NGMI LFG GG RIP BRO KEK LOL LMAO ROFL WTF OMG FYI ASAP DIY""".split())
+MEME_CTX = re.compile(r"\b(memecoin|meme coin|coin|token|ticker|ca:|contract|pump\.?fun|solana|\bsol\b|raydium|dexscreener|jupiter|bonk|launch(ed)?|ape[ds]?|degen|rug|bags?)\b", re.I)
+def cg_top(cache):
+    c = cache.get("cg") or {}
+    if c.get("ts", 0) > NOW - 86400 and c.get("syms"): return set(c["syms"])
+    syms = []
+    try:
+        for pg in (1, 2):
+            r = S.get("https://api.coingecko.com/api/v3/coins/markets", params={"vs_currency": "usd", "order": "market_cap_desc", "per_page": 150, "page": pg}, timeout=15)
+            if r.status_code != 200: break
+            syms += [x["symbol"].upper() for x in r.json()]; time.sleep(2)
+    except Exception: pass
+    if len(syms) >= 250: cache["cg"] = {"ts": int(NOW), "syms": syms}; fonte("CoinGecko top 300 (filtro ticker)", True, len(syms))
+    elif c.get("syms"): syms = c["syms"]; fonte("CoinGecko top 300 (filtro ticker)", True, len(syms), "da cache (aggiornamento fallito)")
+    else: fonte("CoinGecko top 300 (filtro ticker)", False, len(syms), "non disponibile: solo lista statica")
+    return set(syms)
 CAPS_RE = re.compile(r"\b[A-Z][A-Z0-9]{2,5}\b")
-def biz():
+def biz(cache):
     try:
         r = get("https://a.4cdn.org/biz/catalog.json")
         threads = [t for p in r.json() for t in p["threads"] if not t.get("sticky")]
     except Exception as ex:
         fonte("4chan /biz/", False, 0, type(ex).__name__); return [], ""
+    top = cg_top(cache) - {"BONK", "WIF", "POPCAT", "FARTCOIN", "MEW", "PNUT", "GOAT", "MOODENG", "GIGA", "MOG", "TRUMP"}  # meme Solana note: utili come lore
+    skip = NOT_TICK | top; dollar = set()
     tick = defaultdict(list); terms = defaultdict(list); corpus = []
     for t in threads:
         txt = strip((t.get("sub") or "") + " \n " + (t.get("com") or "")) + " " + " ".join(strip(x.get("com")) for x in t.get("last_replies") or [])
         corpus.append(txt.lower())
         own = strip((t.get("sub") or "") + " " + (t.get("com") or ""))
-        for k in ({m.upper() for m in TICK_RE.findall(txt)} | set(CAPS_RE.findall(own))) - NOT_TICK:
-            if not k.isdigit(): tick[k].append(t)
+        dl = {m.upper() for m in TICK_RE.findall(txt)}; dollar |= dl
+        caps = set(CAPS_RE.findall(own)) if MEME_CTX.search(txt) else set()  # parole maiuscole solo in contesto meme/coin
+        for k in (dl | caps) - skip:
+            if not k.isdigit() and not re.fullmatch(r"[A-Z]\d+|\d+[A-Z]*|X\d+", k): tick[k].append(t)
         sub = strip(t.get("sub") or "")
         gm = re.match(r"^/?([a-z0-9]{2,12})/?\s*-?", sub.lower())
         if gm and sub.startswith("/"): terms["/" + gm.group(1) + "/"].append(t)
@@ -104,7 +132,10 @@ def biz():
                 "img": img, "lore": f"Citato in {len(ts_)} thread di /biz/ ({reps} risposte totali). Esempio: «{sample}»",
                 "viral": min(30, 5 * len(ts_) + 5 * math.log10(1 + reps)), "biz_thread": len(ts_), "biz_risposte": reps}
     for k, ts_ in tick.items():
-        if len(ts_) >= 2 or sum(t.get("replies", 0) for t in ts_) >= 15: items.append(mk("$" + k, ts_, "biz_ticker"))
+        reps = sum(t.get("replies", 0) for t in ts_)
+        need = 2 if k in dollar else 3  # senza "$" serve più ricorrenza
+        if len({t["no"] for t in ts_}) >= need or (k in dollar and reps >= 80):
+            it = mk("$" + k, ts_, "biz_ticker"); it["con_dollaro"] = k in dollar; items.append(it)
     for k, ts_ in terms.items():
         if len(ts_) >= 1 and sum(t.get("replies", 0) for t in ts_) >= 30: items.append(mk("General " + k, ts_, "biz_general"))
     fonte("4chan /biz/ (API JSON)", True, len(items), f"{len(threads)} thread analizzati")
@@ -263,7 +294,7 @@ def main():
     items += kym_feed("https://knowyourmeme.com/memes/submissions.rss", "Know Your Meme (nuove proposte)", "kym_proposta")
     items += kym_feed("https://knowyourmeme.com/newsfeed.rss", "Know Your Meme (newsfeed)", "kym_news")
     refs = lore_refs()
-    bi, bcorp = biz(); items += bi
+    bi, bcorp = biz(cache); items += bi
     ri, rcorp = reddit(); items += ri
     # dedup per link
     seen, uniq = set(), []
@@ -296,7 +327,11 @@ def main():
     for it in out[:80]:
         it["solana"] = sol_check(sol, it)
         if it["solana"]["badge"] == "Già lanciato" and it["tipo"].startswith("kym"): it["punteggio"]["potenziale"] = max(0, it["punteggio"]["potenziale"] - 5)
+        if it["tipo"] == "biz_ticker":
+            if it["solana"]["esatti"]: it["punteggio"]["potenziale"] = min(20, it["punteggio"]["potenziale"] + 6)  # memecoin Solana reale
+            elif not it.get("con_dollaro"): it["_drop"] = True  # parola maiuscola senza token Solana: rumore
         it["punteggio"]["totale"] = sum(it["punteggio"][k] for k in ("viralita", "freschezza", "incroci", "potenziale"))
+    out = [it for it in out if not it.pop("_drop", False)]
     for it in out[80:]: it["solana"] = {"badge": "Non controllato", "esatti": [], "simili": []}
     hs = hist.setdefault("voci", {})
     for it in out:

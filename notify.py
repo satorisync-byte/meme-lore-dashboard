@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """🐸 Meme Lore: avvisi Telegram per meme/lore con punteggio >= SOGLIA. Ogni voce viene avvisata una sola volta (alerted_telegram.json)."""
 import json, os, time, html, requests
-SOGLIA, MAX_PER_RUN, KEEP_DAYS = 65, 5, 10
+SOGLIA, MAX_PER_RUN, KEEP_DAYS = 50, 5, 10
 DASH = "https://satorisync-byte.github.io/meme-lore-dashboard/"
 TRL = {"crescita": "📈 in crescita", "nuovo": "🆕 nuovo", "stabile": "➖ stabile", "calo": "📉 in calo"}
 E = lambda s: html.escape(str(s or ""), quote=True)
 
 def msg(s):
     p = s["punteggio"]; tr = s.get("trend") or {}; so = s.get("solana") or {}
-    lines = ["🐸 <b>Meme Lore</b> — nuovo meme sopra 65", "", f"<b>{E(s['titolo'])}</b>", E((s.get("lore") or "")[:300]),
+    lines = ["🐸 <b>Meme Lore</b> — nuovo meme con punteggio ≥ " + str(SOGLIA), "", f"<b>{E(s['titolo'])}</b>", E((s.get("lore") or "")[:300]),
              f"Punteggio: <b>{p['totale']}</b> (Viralità {p['viralita']} · Freschezza {p['freschezza']} · Incroci {p['incroci']} · Potenziale {p['potenziale']})",
              f"Fonti: <a href=\"{E(s['link'])}\">{E(', '.join(s['fonti']))}</a>", f"Andamento: {TRL.get(tr.get('stato'), '—')}",
              f"Solana: {E(so.get('badge') or 'non controllato')}"]
@@ -28,7 +28,15 @@ def main():
     st["alerted"] = {k: v for k, v in st.get("alerted", {}).items() if now - v.get("ts", 0) < KEEP_DAYS * 86400}
     seen = set(st["alerted"]) | {v.get("link") for v in st["alerted"].values()}
     stories = json.load(open("data.json"))["voci"]
+    stories = [s for s in stories if s.get("tipo") != "biz_general"]  # general /biz/ = discussione generica, non meme
     todo = [s for s in stories if s["punteggio"]["totale"] >= SOGLIA and s.get("id") not in seen and s["link"] not in seen][:MAX_PER_RUN]
+    if st.get("soglia") != SOGLIA:  # cambio soglia: evita raffica sulle voci già presenti
+        if len(todo) > 3:
+            for s in [s for s in stories if s["punteggio"]["totale"] >= SOGLIA]:
+                st["alerted"].setdefault(s.get("id") or s["link"], {"link": s["link"], "titolo": s["titolo"][:120], "punteggio": s["punteggio"]["totale"], "ts": int(now), "silenzioso": True})
+            print(f"Nuova soglia {SOGLIA}: {len(todo)} voci già sopra soglia segnate come avvisate senza invio.")
+            todo = []
+        st["soglia"] = SOGLIA
     tok, chat = os.environ.get("TELEGRAM_BOT_TOKEN"), os.environ.get("TELEGRAM_CHAT_ID")
     print(f"Storie >= {SOGLIA} da avvisare: {len(todo)}")
     if not tok or not chat:
