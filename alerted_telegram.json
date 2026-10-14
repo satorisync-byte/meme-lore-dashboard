@@ -53,8 +53,14 @@
    "titolo": "$MU",
    "punteggio": 55,
    "ts": 1791919893
+  },
+  "32b6b50e88": {
+   "link": "https://www.reddit.com/r/CryptoCurrency/comments/1x5h87q/coinbase_working_together_on_bitcoins_postquantum/",
+   "titolo": "Coinbase: Working Together on Bitcoin’s Post-Quantum Readiness",
+   "punteggio": 50,
+   "ts": 1791950681
   }
  },
- "aggiornato": 1791948766,
+ "aggiornato": 1791950681,
  "soglia": 50
 }
