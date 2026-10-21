@@ -23,10 +23,11 @@ jobs:
           key: memecache-${{ github.run_id }}
           restore-keys: memecache-
       - run: python aggregate.py
-      - name: Avvisi Telegram
+      - name: Avvisi Telegram + Discord
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
         run: python notify.py
       - name: Commit if changed
         run: |
