@@ -1,11 +1,5 @@
 {
  "alerted": {
-  "1249f580f1": {
-   "link": "https://knowyourmeme.com/memes/death-of-rj-mitte",
-   "titolo": "Death of RJ Mitte",
-   "punteggio": 53,
-   "ts": 1791843247
-  },
   "4518d696fe": {
    "link": "https://knowyourmeme.com/memes/randy-marsh-vs-whats-up-brah",
    "titolo": "Randy Marsh vs. / What's Up Brah?",
@@ -67,7 +61,7 @@
    "ts": 1792009001
   }
  },
- "aggiornato": 1792705749,
+ "aggiornato": 1792707311,
  "soglia": 50,
  "discord": {
   "3baaca24b6": 1792589387,
