@@ -1,11 +1,5 @@
 {
  "alerted": {
-  "9c2f8a20de": {
-   "link": "https://knowyourmeme.com/memes/uncle-pussy",
-   "titolo": "Uncle Pussy",
-   "punteggio": 56,
-   "ts": 1791838798
-  },
   "1249f580f1": {
    "link": "https://knowyourmeme.com/memes/death-of-rj-mitte",
    "titolo": "Death of RJ Mitte",
@@ -73,7 +67,7 @@
    "ts": 1792009001
   }
  },
- "aggiornato": 1792702258,
+ "aggiornato": 1792703851,
  "soglia": 50,
  "discord": {
   "3baaca24b6": 1792589387,
