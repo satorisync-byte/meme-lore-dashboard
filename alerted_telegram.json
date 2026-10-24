@@ -1,11 +1,5 @@
 {
  "alerted": {
-  "32b6b50e88": {
-   "link": "https://www.reddit.com/r/CryptoCurrency/comments/1x5h87q/coinbase_working_together_on_bitcoins_postquantum/",
-   "titolo": "Coinbase: Working Together on Bitcoin’s Post-Quantum Readiness",
-   "punteggio": 50,
-   "ts": 1791950681
-  },
   "2930370197": {
    "link": "https://knowyourmeme.com/memes/kyle-looking-at-an-old-photo-south-park-nostalgia-trend",
    "titolo": "Kyle Looking at an Old Photo / South Park Nostalgia Trend",
@@ -31,7 +25,7 @@
    "ts": 1792009001
   }
  },
- "aggiornato": 1792814437,
+ "aggiornato": 1792815917,
  "soglia": 50,
  "discord": {
   "3baaca24b6": 1792589387,
